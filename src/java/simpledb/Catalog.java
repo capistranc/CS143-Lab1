@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,13 +18,42 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Threadsafe
  */
 public class Catalog {
-
+	
+	private class CatalogItem {
+    	private String name;
+    	private String primaryKey;
+    	private DbFile file;
+    	
+    	public CatalogItem(String s, String k, DbFile f){
+    		name = s;
+    		primaryKey = k;
+    		file = f;
+    	}
+    	public String getName(){
+    		return name;
+    	}
+    	
+    	public DbFile getDbFile(){
+    		return file;
+    	}
+    	
+    	public String getPrimaryKey(){
+    		return primaryKey;
+    	}
+    } 
+	
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
+	HashMap<String, CatalogItem> name_to_id_map;
+	HashMap<Integer, CatalogItem> id_to_file_map;
+	ArrayList<Integer> id_list;
+	
     public Catalog() {
-        // some code goes here
+    	name_to_id_map = new HashMap<String, CatalogItem>();
+    	id_to_file_map = new HashMap<Integer, CatalogItem>();    	
+    	id_list = new ArrayList<Integer>();
     }
 
     /**
@@ -32,11 +62,25 @@ public class Catalog {
      * @param file the contents of the table to add;  file.getId() is the identfier of
      *    this file/tupledesc param for the calls getTupleDesc and getFile
      * @param name the name of the table -- may be an empty string.  May not be null.  If a name
-     * @param pkeyField the name of the primary key field
      * conflict exists, use the last table to be added as the table for a given name.
+     * @param pkeyField the name of the primary key       
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // some code goes here
+    	//TODO what if file is null
+    	if (name == null)
+    		throw new InvalidParameterException();
+    	 CatalogItem new_item = new CatalogItem(name, pkeyField, file);
+    	 if (name_to_id_map.containsKey(name)){
+    		 id_to_file_map.remove(name_to_id_map.get(name).getDbFile().getId());
+    		 id_list.remove(name_to_id_map.get(name).getDbFile().getId());
+    		 id_list.add(file.getId());
+       		 name_to_id_map.replace(name, new_item);
+    	 }
+    	 else {
+    		 name_to_id_map.put(name, new_item);
+    		 id_to_file_map.put(file.getId(), new_item);
+    		 id_list.add(file.getId());
+    	 }
     }
 
     public void addTable(DbFile file, String name) {
@@ -59,8 +103,12 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) throws NoSuchElementException {
-        // some code goes here
-        return 0;
+    	CatalogItem i = name_to_id_map.get(name);
+    	if (i == null)
+    		throw new NoSuchElementException();
+    	else{
+    		return i.getDbFile().getId();
+    	}
     }
 
     /**
@@ -70,8 +118,11 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+    	CatalogItem i = id_to_file_map.get(tableid);
+    	if (i == null)
+    		throw new NoSuchElementException();
+    	else
+    		return i.getDbFile().getTupleDesc();
     }
 
     /**
@@ -81,28 +132,38 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+    	CatalogItem i = id_to_file_map.get(tableid);
+    	if (i == null)
+    		throw new NoSuchElementException();
+    	else
+    		return i.getDbFile();
     }
 
     public String getPrimaryKey(int tableid) {
-        // some code goes here
-        return null;
+    	CatalogItem i = id_to_file_map.get(tableid);
+    	if (i == null)
+    		throw new NoSuchElementException();
+    	else
+    		return i.getPrimaryKey();
     }
 
     public Iterator<Integer> tableIdIterator() {
-        // some code goes here
-        return null;
+    	return id_list.iterator();
     }
 
     public String getTableName(int id) {
-        // some code goes here
-        return null;
-    }
-    
+    	CatalogItem i = id_to_file_map.get(id);
+    	if (i == null)
+    		throw new NoSuchElementException();
+    	else
+    		return i.getName();    
+    	}
+
     /** Delete all tables from the catalog */
     public void clear() {
-        // some code goes here
+    	id_list.clear();
+    	id_to_file_map.clear();
+    	name_to_id_map.clear();
     }
     
     /**
@@ -160,4 +221,3 @@ public class Catalog {
         }
     }
 }
-

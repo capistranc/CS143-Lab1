@@ -1,3 +1,4 @@
+
 package simpledb;
 
 import java.io.Serializable;
@@ -19,25 +20,28 @@ public class RecordId implements Serializable {
      * @param tupleno
      *            the tuple number within the page.
      */
-    public RecordId(PageId pid, int tupleno) {
-        // some code goes here
+    PageId pid;
+    int tupleNum;
+
+    public RecordId(PageId p, int tupleno) {
+        pid = p;
+        tupleNum = tupleno;
+        
     }
 
     /**
      * @return the tuple number this RecordId references.
      */
     public int tupleno() {
-        // some code goes here
-        return 0;
+        return tupleNum;
     }
 
     /**
      * @return the page id this RecordId references.
      */
     public PageId getPageId() {
-        // some code goes here
-        return null;
-    }
+        return pid;
+     }
 
     /**
      * Two RecordId objects are considered equal if they represent the same
@@ -47,8 +51,9 @@ public class RecordId implements Serializable {
      */
     @Override
     public boolean equals(Object o) {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return hashCode() == o.hashCode();
+        //return (pid == ((RecordId)o).getPageId() &&
+        //      tupleNum == ((RecordId)o).tupleno());
     }
 
     /**
@@ -59,9 +64,7 @@ public class RecordId implements Serializable {
      */
     @Override
     public int hashCode() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
-
+        return (String.valueOf(pid) + String.valueOf(tupleNum)).hashCode();
     }
 
 }

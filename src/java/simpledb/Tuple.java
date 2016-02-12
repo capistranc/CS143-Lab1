@@ -1,9 +1,10 @@
 package simpledb;
 
 import java.io.Serializable;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.*;
 
 /**
  * Tuple maintains information about the contents of a tuple. Tuples have a
@@ -13,10 +14,9 @@ import java.util.*;
 public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private ArrayList<Field> tuple_list;
+    private ArrayList<Field> tuple_fields;
     private TupleDesc tuple_desc;
-    private RecordId rec_id;
-
+    
     /**
      * Create a new tuple with the specified schema (type).
      * 
@@ -25,16 +25,15 @@ public class Tuple implements Serializable {
      *            instance with at least one field.
      */
     public Tuple(TupleDesc td) {
-        int len = td.getNumFields();
-
-        if (len < 1)
-            throw new IllegalArgumentException("Invalid Field Length");
-
-        tuple_list = new ArrayList<Field>();
+        //TODO SOME CHECKING FOR td.num_fields
+        if (td.numFields() < 1)
+            throw new InvalidParameterException();
+        
+        tuple_fields = new ArrayList<Field>();
         tuple_desc = td;
-
-        for (int i = 0; i < len; i++)
-            tuple_list.add(null);
+        for (int i = 0; i < td.numFields(); i++){
+            tuple_fields.add(null);
+        }   
     }
 
     /**
@@ -49,7 +48,8 @@ public class Tuple implements Serializable {
      *         be null.
      */
     public RecordId getRecordId() {
-        return rec_id;
+        // some code goes here
+        return null;
     }
 
     /**
@@ -59,7 +59,7 @@ public class Tuple implements Serializable {
      *            the new RecordId for this tuple.
      */
     public void setRecordId(RecordId rid) {
-        rec_id = rid;
+        // some code goes here
     }
 
     /**
@@ -71,10 +71,12 @@ public class Tuple implements Serializable {
      *            new value for the field.
      */
     public void setField(int i, Field f) {
-        if (i < 0 || i >= tuple_list.size())
-            throw new IllegalArgumentException("Invalid index");
-
-        tuple_list.set(i, f);
+        //TODO ERROR CHECKING
+        //if out of bounds, should already thrown exception
+        if (i < 0 || i >= tuple_fields.size() ||
+                !tuple_desc.getFieldType(i).equals(f.getType()))
+            throw new InvalidParameterException();
+        tuple_fields.set(i, f); 
     }
 
     /**
@@ -84,10 +86,8 @@ public class Tuple implements Serializable {
      *            field index to return. Must be a valid index.
      */
     public Field getField(int i) {
-        if (i < 0 || i >= tuple_list.size())
-            throw new IllegalArgumentException("Invalid index");
-
-        return tuple_list.get(i);
+        //out of bounds handled by arraylist
+        return tuple_fields.get(i);
     }
 
     /**
@@ -99,26 +99,25 @@ public class Tuple implements Serializable {
      * where \t is any whitespace, except newline, and \n is a newline
      */
     public String toString() {
-        String ret = "";
-
-        for (ListIterator<Field> it = this.fields(); it.hasNext(); )
-        {
-            if (!it.next().toString().equals(""))
-                ret += "\t";
-            ret += it.previous().toString();
+        String tuples = "";
+        for (int i = 0; i < this.getTupleDesc().numFields(); i++){
+            if (!tuples.equals(""))
+                tuples += "\t";
+            tuples += getField(i).toString();
         }
-        ret += "\n";
-
-        return ret;
+        tuples += "\n";
+        return tuples;
     }
+   
     
     /**
      * @return
      *        An iterator which iterates over all the fields of this tuple
      * */
-    public ListIterator<Field> fields()
+    public Iterator<Field> fields()
     {
-        return tuple_list.listIterator();
+        // some code goes here
+        return tuple_fields.iterator();
     }
     
     /**
@@ -126,15 +125,12 @@ public class Tuple implements Serializable {
      * */
     public void resetTupleDesc(TupleDesc td)
     {
-        int len = td.getNumFields();
-
-        if (len < 1)
-            throw new IllegalArgumentException("Invalid Field Length");
-
+        if (td.numFields() < 1)
+            throw new InvalidParameterException();
         tuple_desc = td;
-        tuple_list = new ArrayList<Field>();
-
-        for (int i = 0; i < len; i++)
-            tuple_list.add(null);
+        tuple_fields = new ArrayList<Field>();
+        for (int i = 0; i < td.numFields(); i++){
+            tuple_fields.addAll(null);
+        }   
     }
 }
